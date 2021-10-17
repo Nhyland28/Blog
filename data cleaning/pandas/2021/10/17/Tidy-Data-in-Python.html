@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Tidy Data in Python | Nick Hyland</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Tidy Data in Python" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A tutorial of converting a messy Excel spreadsheet into a tidy long-formatted Pandas DataFrame." />
+<meta property="og:description" content="A tutorial of converting a messy Excel spreadsheet into a tidy long-formatted Pandas DataFrame." />
+<link rel="canonical" href="https://nhyland28.github.io/Blog/data%20cleaning/pandas/2021/10/17/Tidy-Data-in-Python.html" />
+<meta property="og:url" content="https://nhyland28.github.io/Blog/data%20cleaning/pandas/2021/10/17/Tidy-Data-in-Python.html" />
+<meta property="og:site_name" content="Nick Hyland" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-10-17T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://nhyland28.github.io/Blog/data%20cleaning/pandas/2021/10/17/Tidy-Data-in-Python.html","@type":"BlogPosting","headline":"Tidy Data in Python","dateModified":"2021-10-17T00:00:00-05:00","datePublished":"2021-10-17T00:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://nhyland28.github.io/Blog/data%20cleaning/pandas/2021/10/17/Tidy-Data-in-Python.html"},"description":"A tutorial of converting a messy Excel spreadsheet into a tidy long-formatted Pandas DataFrame.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://nhyland28.github.io/Blog/feed.xml" title="Nick Hyland" /><!-- the google_analytics_id gets auto inserted from the config file -->
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JGCG27YW19"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-JGCG27YW19');
+</script>
+
+
+<link rel="shortcut icon" type="image/x-icon" href="/Blog/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/Blog/">Nick Hyland</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/Blog/about/">About Me</a><a class="page-link" href="/Blog/search/">Search</a><a class="page-link" href="/Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Tidy Data in Python</h1><p class="page-description">A tutorial of converting a messy Excel spreadsheet into a tidy long-formatted Pandas DataFrame.</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-10-17T00:00:00-05:00" itemprop="datePublished">
+        Oct 17, 2021
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      11 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/Blog/categories/#data cleaning">data cleaning</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/Blog/categories/#pandas">pandas</a>
+        
+      
+      </p>
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-wrap flex-justify-end">
+          <div class="px-2">
+
+    <a href="https://github.com/Nhyland28/Blog/tree/master/_notebooks/2021-10-17-Tidy-Data-in-Python.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/Blog/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/Nhyland28/Blog/master?filepath=_notebooks%2F2021-10-17-Tidy-Data-in-Python.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/Blog/assets/badges/binder.svg" alt="Open In Binder"/>
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/Nhyland28/Blog/blob/master/_notebooks/2021-10-17-Tidy-Data-in-Python.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/Blog/assets/badges/colab.svg" alt="Open In Colab"/>
+    </a>
+</div>
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2021-10-17-Tidy-Data-in-Python.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In this post we will be walking through the process of converting a messy Excel worksheet into tidy data. According to Hadley Wickham's excellent book, <a href="https://r4ds.had.co.nz/index.html"><em>R For Data Science</em></a>, tidy data follows three main principles:</p>
+<ol>
+<li>Each variable must have its own column.</li>
+<li>Each observation must have its own row.</li>
+<li>Each value must have its own cell.</li>
+</ol>
+<p>The initial work of organizing the data will pay dividends down the road as your data will be uniform and easier to work with.</p>
+<p>For this tutorial we will be using the <a href="https://data.ers.usda.gov/reports.aspx?ID=17835">farm sector balance sheet</a> provided by the United States Department of Agriculture (USDA).</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="https://i.imgur.com/0CUQppB.png" alt="Imgur" /></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The USDA Excel shows a time series from 2014-2020 (with forecasted values for 2021). It is in a wide format with the variables (items in column 'A') representing rows instead of columns. Our goal will be to transform the dataframe into the below shape. We will have 5 columns:</p>
+<ol>
+<li>Year</li>
+<li>Balance item</li>
+<li>Amount</li>
+<li>Forecast (a boolean column indicating true if the amount is a forecast or historical data)</li>
+<li>Report date</li>
+</ol>
+<p>The last two columns (forecast and report date) may seem a little unnecessary. I included them because they will potentially be helpful keys if we were to include the report into a larger database. For instance, if we wanted to keep an archival database of all the farm sector balance sheets we could quickly identify observations with their report data. Additionally, I really like to indicate if the value is a forecast as it can lead into some interesting insights as to how their forecast changes over time and how it ends up performing to actual data.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The first step is to load our packages and then the Excel data into a dataframe. All we need is Numpy and Pandas. We will use Pandas' <code>read_excel()</code> function to load the dataset. We'll pull data starting in row 3 of the Excel (we use <code>header=2</code> here because <code>read_excel()</code> is zero-index while the spreadsheet is indexed at 1) and we'll read just for the first table (29 rows). Immediately after loading the data we will pull the date of the report into a variable that will be helpful once we create the report date column.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+
+<span class="n">report_date</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>United States</th>
+      <th>Unnamed: 1</th>
+      <th>Unnamed: 2</th>
+      <th>Data as of:</th>
+      <th>2021-09-02 00:00:00</th>
+      <th>Unnamed: 5</th>
+      <th>Unnamed: 6</th>
+      <th>Unnamed: 7</th>
+      <th>Unnamed: 8</th>
+      <th>Unnamed: 9</th>
+      <th>Unnamed: 10</th>
+      <th>Unnamed: 11</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Change</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td></td>
+      <td>2014</td>
+      <td>2015</td>
+      <td>2016.0</td>
+      <td>2017.0</td>
+      <td>2018.0</td>
+      <td>2019.0</td>
+      <td>2020.0</td>
+      <td>2021F</td>
+      <td>NaN</td>
+      <td>2019 - 20</td>
+      <td>2020 - 21F</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>$ billion</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Percent</td>
+      <td>Percent</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Cash income statement</td>
+      <td></td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As you tell the above dataset is pretty messy. The first thing we will want to do is make the first row (remember it's zero-indexed) the column names. After that we can drop rows and columns that have <code>NaN</code>s in them as well as the two columns that contain year-over-year percent change (we will be creating a separate dataframe in a different blog that just measures this).</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># Remove rows that have NaNs in them</span>
+<span class="n">farm_raw</span> <span class="o">=</span> <span class="n">farm_raw</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span> 
+
+<span class="c1"># Remove the one column that is an NaN</span>
+<span class="c1">## The below code slices the DataFrame to include all columns do not include a null name</span>
+<span class="n">farm_raw</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">notnull</span><span class="p">()]</span>
+
+<span class="n">farm_raw</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;2019 - 20&#39;</span><span class="p">,</span> <span class="s1">&#39;2020 - 21F&#39;</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>1</th>
+      <th></th>
+      <th>2014</th>
+      <th>2015</th>
+      <th>2016.0</th>
+      <th>2017.0</th>
+      <th>2018.0</th>
+      <th>2019.0</th>
+      <th>2020.0</th>
+      <th>2021F</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td></td>
+      <td>2014</td>
+      <td>2015</td>
+      <td>2016.000000</td>
+      <td>2017.000000</td>
+      <td>2018.000000</td>
+      <td>2019.000000</td>
+      <td>2020.000000</td>
+      <td>2021F</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>$ billion</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Cash income statement</td>
+      <td></td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>a.  Cash receipts</td>
+      <td>423.971</td>
+      <td>377.432</td>
+      <td>358.481924</td>
+      <td>370.427294</td>
+      <td>371.182097</td>
+      <td>367.079638</td>
+      <td>357.160627</td>
+      <td>421.508</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Crops 1/</td>
+      <td>211.681</td>
+      <td>187.916</td>
+      <td>195.751261</td>
+      <td>194.867576</td>
+      <td>194.853082</td>
+      <td>191.630787</td>
+      <td>192.162673</td>
+      <td>230.054</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Animals and products</td>
+      <td>212.29</td>
+      <td>189.516</td>
+      <td>162.730663</td>
+      <td>175.559718</td>
+      <td>176.329015</td>
+      <td>175.448851</td>
+      <td>164.997954</td>
+      <td>191.454</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>b.  Federal Government direct farm program pay...</td>
+      <td>9.76684</td>
+      <td>10.8045</td>
+      <td>12.979677</td>
+      <td>11.531611</td>
+      <td>13.669010</td>
+      <td>22.447200</td>
+      <td>45.687724</td>
+      <td>28.0339</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>c. Cash farm-related income 3/</td>
+      <td>36.5654</td>
+      <td>34.3769</td>
+      <td>27.891612</td>
+      <td>31.206105</td>
+      <td>29.125531</td>
+      <td>34.723812</td>
+      <td>34.314071</td>
+      <td>36.8362</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>d. Gross cash income (a+b+c)</td>
+      <td>470.303</td>
+      <td>422.613</td>
+      <td>399.353213</td>
+      <td>413.165009</td>
+      <td>413.976638</td>
+      <td>424.250650</td>
+      <td>437.162422</td>
+      <td>486.378</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Let's set the first column as an index so it is a little easier to work with. Also, we can go ahead and delete the first 3 rows of the dataframe as they don't contain useful information.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">## We need to make the columns a list and then we can select the first column</span>
+<span class="n">farm_raw</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">farm_raw</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+<span class="n">farm_raw</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>Index([&#39;a.  Cash receipts &#39;, &#39;      Crops 1/&#39;, &#39;      Animals and products&#39;,
+       &#39;b.  Federal Government direct farm program payments 2/&#39;,
+       &#39;c. Cash farm-related income 3/&#39;, &#39;d. Gross cash income (a+b+c)&#39;,
+       &#39;e. Cash expenses  4/, 5/&#39;, &#39;f. Net cash income (d-e)&#39;,
+       &#39;Farm income statement&#39;, &#39;g. Gross cash income (a+b+c)&#39;,
+       &#39;h. Nonmoney income 6/ &#39;, &#39;i. Value of inventory adjustment &#39;,
+       &#39;j. Total gross income (g+h+i)&#39;, &#39;k. Total expenses&#39;,
+       &#39;l. Net farm income (j-k)&#39;],
+      dtype=&#39;object&#39;, name=&#39; &#39;)</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As we can see, the index items are messy with various letters preceeding the names and footnotes still present (e.g. '1/'). We will use a series of pandas string methods to clean up the that text column.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<span class="c1"># Using regular expressions to remove the lower-case row labels</span>
+<span class="c1"># E.g. the &#39;a.&#39; in &#39;a. Cash receipts&#39;</span>
+<span class="c1">## Since there is no str.remove function we will just replace the pattern we want to drop with an empty string</span>
+<span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[a-z]\.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Remove all the parentheses and the chartacters within them</span>
+<span class="c1"># E.g. the &#39;(a+b+c)&#39; in &#39;g. Gross cash income (a+b+c)&#39;</span>
+<span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\(([^\)]+)\)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Remove all the footnote labels</span>
+<span class="c1"># E.g. the &#39;2/&#39; in &#39;Federal Government direct farm program payments&#39;</span>
+<span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[1-9]/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Remove all commas</span>
+<span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Remove all the white space before and after the strong</span>
+<span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="c1"># Replace spaces with underscores</span>
+<span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>With the columns cleaned up we can put the data into long format. The first thing we will do is transpose our dataframe (make the columns the rows and the rows the columns).</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">## This will allow us to melt the data frame (next step) easier</span>
+<span class="n">farm_raw</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>1</th>
+      <th>cash_receipts</th>
+      <th>crops</th>
+      <th>animals_and_products</th>
+      <th>federal_government_direct_farm_program_payments</th>
+      <th>cash_farm-related_income</th>
+      <th>gross_cash_income</th>
+      <th>cash_expenses</th>
+      <th>net_cash_income</th>
+      <th>farm_income_statement</th>
+      <th>gross_cash_income</th>
+      <th>nonmoney_income</th>
+      <th>value_of_inventory_adjustment</th>
+      <th>total_gross_income</th>
+      <th>total_expenses</th>
+      <th>net_farm_income</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2014</td>
+      <td>423.971</td>
+      <td>211.681</td>
+      <td>212.29</td>
+      <td>9.76684</td>
+      <td>36.5654</td>
+      <td>470.303</td>
+      <td>338.998</td>
+      <td>131.306</td>
+      <td>NaN</td>
+      <td>470.303</td>
+      <td>16.8919</td>
+      <td>-3.907</td>
+      <td>483.288</td>
+      <td>391.05</td>
+      <td>92.238</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015</td>
+      <td>377.432</td>
+      <td>187.916</td>
+      <td>189.516</td>
+      <td>10.8045</td>
+      <td>34.3769</td>
+      <td>422.613</td>
+      <td>315.829</td>
+      <td>106.785</td>
+      <td>NaN</td>
+      <td>422.613</td>
+      <td>17.7622</td>
+      <td>0.419605</td>
+      <td>440.795</td>
+      <td>359.131</td>
+      <td>81.664</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2016</td>
+      <td>358.482</td>
+      <td>195.751</td>
+      <td>162.731</td>
+      <td>12.9797</td>
+      <td>27.8916</td>
+      <td>399.353</td>
+      <td>303.784</td>
+      <td>95.5696</td>
+      <td>NaN</td>
+      <td>399.353</td>
+      <td>17.1479</td>
+      <td>-4.24842</td>
+      <td>412.253</td>
+      <td>349.938</td>
+      <td>62.3145</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2017</td>
+      <td>370.427</td>
+      <td>194.868</td>
+      <td>175.56</td>
+      <td>11.5316</td>
+      <td>31.2061</td>
+      <td>413.165</td>
+      <td>311.892</td>
+      <td>101.273</td>
+      <td>NaN</td>
+      <td>413.165</td>
+      <td>18.2841</td>
+      <td>-6.04901</td>
+      <td>425.4</td>
+      <td>350.285</td>
+      <td>75.1147</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2018</td>
+      <td>371.182</td>
+      <td>194.853</td>
+      <td>176.329</td>
+      <td>13.669</td>
+      <td>29.1255</td>
+      <td>413.977</td>
+      <td>311.398</td>
+      <td>102.579</td>
+      <td>NaN</td>
+      <td>413.977</td>
+      <td>19.1378</td>
+      <td>-8.23461</td>
+      <td>424.88</td>
+      <td>343.815</td>
+      <td>81.0648</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Next we will melt the dataframe. This powerful function (<code>pd.melt()</code>) makes our current wide dataframe into a long dataframe. The <a href="https://pandas.pydata.org/docs/reference/api/pandas.melt.html">documentation</a> describes it as this:</p>
+<p>"one or more columns are identifier variables (for our case the year column), while all other columns, considered measured variables are 'unpivoted' to the row axis, leaving just two non-identifier columns, 'variable' (measurement, e.g. 'cash_receipts') and 'value' (the balance values... the numbers)."</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">frame</span><span class="o">=</span><span class="n">farm_raw</span><span class="p">,</span> <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>1</th>
+      <th></th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2014</td>
+      <td>cash_receipts</td>
+      <td>423.971</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015</td>
+      <td>cash_receipts</td>
+      <td>377.432</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2016</td>
+      <td>cash_receipts</td>
+      <td>358.482</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2017</td>
+      <td>cash_receipts</td>
+      <td>370.427</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2018</td>
+      <td>cash_receipts</td>
+      <td>371.182</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2019</td>
+      <td>cash_receipts</td>
+      <td>367.08</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2020</td>
+      <td>cash_receipts</td>
+      <td>357.161</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>2021F</td>
+      <td>cash_receipts</td>
+      <td>421.508</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>2014</td>
+      <td>crops</td>
+      <td>211.681</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>2015</td>
+      <td>crops</td>
+      <td>187.916</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>2016</td>
+      <td>crops</td>
+      <td>195.751</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>2017</td>
+      <td>crops</td>
+      <td>194.868</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>2018</td>
+      <td>crops</td>
+      <td>194.853</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>2019</td>
+      <td>crops</td>
+      <td>191.631</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>2020</td>
+      <td>crops</td>
+      <td>192.163</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>2021F</td>
+      <td>crops</td>
+      <td>230.054</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>2014</td>
+      <td>animals_and_products</td>
+      <td>212.29</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>2015</td>
+      <td>animals_and_products</td>
+      <td>189.516</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>2016</td>
+      <td>animals_and_products</td>
+      <td>162.731</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>2017</td>
+      <td>animals_and_products</td>
+      <td>175.56</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As you can see, our dataframe now consists of just three columns. We could have kept it unmelted and it would have technically been tidy. Each row was an observation and each column was a separate variable. However, we want to add two more columns for each observation - if it was a forecast and the date of the report it was associated with.</p>
+<p>First let's rename those columns that we already have.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;balance_item&#39;</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Next let's add a boolean column (true or false) to show whether the observation was a forecast or not. The Excel indicated forecasts by adding an "F" at the end of the date (2021F). We will use Numpy's <code>where</code> function to indicate False for columns that just have 4 numbers and True for everything else (columns with an "F" for forecast).</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;forecast&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;0000&#39;</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now we can add a column showing the report date (remember we pulled this earlier from the spreadsheet and saved it into a variable report_date).</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;report_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">report_date</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>year</th>
+      <th>balance_item</th>
+      <th>value</th>
+      <th>forecast</th>
+      <th>report_date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2014</td>
+      <td>cash_receipts</td>
+      <td>423.971</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015</td>
+      <td>cash_receipts</td>
+      <td>377.432</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2016</td>
+      <td>cash_receipts</td>
+      <td>358.482</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2017</td>
+      <td>cash_receipts</td>
+      <td>370.427</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2018</td>
+      <td>cash_receipts</td>
+      <td>371.182</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We're almost there! Lets dig a little deeper into our columns (variables) and see what data types they are.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="o">.</span><span class="n">dtypes</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>year                    object
+balance_item            object
+value                   object
+forecast                  bool
+report_date     datetime64[ns]
+dtype: object</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Good thing we checked! Both our year column and value column are objects when we would want them to be integers and floats, respectively. This makes sense if you remember our original data set (especially since we never manually assigned the columns data types - a good habit I should admittedly get better with). There was likely some strings and floasts in the columns that the year and balance_item columns are derived from so they automatically got converted into objects. Luckily this is an easy fix.</p>
+<p>For the year column we have to get rid of the "F" for forecasted values, make sure its only 4 digits, and then convert it to an integer type.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+<span class="c1"># Remove all non-digits (D). This is meant to drop the &#39;F&#39;</span>
+<span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;\D&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Only include the 4 numbers for a year</span>
+<span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">stop</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Convert the column to an integer</span>
+<span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The value column is much easier. We can just convert it to a float using the above .astype() function.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">farm_raw</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm_raw</span><span class="o">.</span><span class="n">dtypes</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>year                     int32
+balance_item            object
+value                  float64
+forecast                  bool
+report_date     datetime64[ns]
+dtype: object</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Much better! All our values are now datatypes we would expect. And with that, we've cleaned the data! There's still much more we can do. We can easily navigate and filter this dataframe with Pandas, add on previous reports from USDA, and create graphics. In the future I'll have a blog post that will show how we can easily create a corresponding dataframe that looks represents the data in year-over-year percent change - a valuable way to look at economic data.</p>
+<p>As a final step let's make the farm_raw into just farm and then take a look at our clean and tidy dataset!</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">farm</span> <span class="o">=</span> <span class="n">farm_raw</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>year</th>
+      <th>balance_item</th>
+      <th>value</th>
+      <th>forecast</th>
+      <th>report_date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2014</td>
+      <td>cash_receipts</td>
+      <td>423.970804</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015</td>
+      <td>cash_receipts</td>
+      <td>377.432066</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2016</td>
+      <td>cash_receipts</td>
+      <td>358.481924</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2017</td>
+      <td>cash_receipts</td>
+      <td>370.427294</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2018</td>
+      <td>cash_receipts</td>
+      <td>371.182097</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2019</td>
+      <td>cash_receipts</td>
+      <td>367.079638</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2020</td>
+      <td>cash_receipts</td>
+      <td>357.160627</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>2021</td>
+      <td>cash_receipts</td>
+      <td>421.508110</td>
+      <td>True</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>2014</td>
+      <td>crops</td>
+      <td>211.680565</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>2015</td>
+      <td>crops</td>
+      <td>187.916477</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>2016</td>
+      <td>crops</td>
+      <td>195.751261</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>2017</td>
+      <td>crops</td>
+      <td>194.867576</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>2018</td>
+      <td>crops</td>
+      <td>194.853082</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>2019</td>
+      <td>crops</td>
+      <td>191.630787</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>2020</td>
+      <td>crops</td>
+      <td>192.162673</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>2021</td>
+      <td>crops</td>
+      <td>230.053695</td>
+      <td>True</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>2014</td>
+      <td>animals_and_products</td>
+      <td>212.290239</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>2015</td>
+      <td>animals_and_products</td>
+      <td>189.515589</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>2016</td>
+      <td>animals_and_products</td>
+      <td>162.730663</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>2017</td>
+      <td>animals_and_products</td>
+      <td>175.559718</td>
+      <td>False</td>
+      <td>2021-09-02</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+</div>
+
+
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="Nhyland28/Blog"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/Blog/data%20cleaning/pandas/2021/10/17/Tidy-Data-in-Python.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>Blog about data science and artificial intelligence</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/Nhyland28" title="Nhyland28"><svg class="svg-icon grey"><use xlink:href="/Blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/NickHyland28" title="NickHyland28"><svg class="svg-icon grey"><use xlink:href="/Blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
